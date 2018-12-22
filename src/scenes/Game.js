@@ -116,13 +116,17 @@ class Game extends Phaser.Scene {
         }*/
 
         var arrow = '40 0 40 20 100 20 100 80 40 80 40 100 0 50';
+        var min_r = 50;
+        var max_r = 150;
 
         var shape_str = '';
         var pts = [];
-        var pts_max = 40;
+        var pts_max = 30;
+        var dis = Phaser.Math.Between(min_r, max_r);
         for (var i=0; i<pts_max; i++) {
             var angle = 2*Math.PI * (i/pts_max);
-            var dis = Phaser.Math.Between(50, 200);
+            if (Math.random() < 0.5)
+                dis = Phaser.Math.Clamp(dis + Phaser.Math.Between(-50, 50), min_r, max_r);
             var v = {
                 x: dis*Math.cos(angle),
                 y: dis*Math.sin(angle)
@@ -145,7 +149,9 @@ class Game extends Phaser.Scene {
 
         //create smoothed shape as physics body
         var shape_smooth_str = '';
-        for (var i=0; i<5; i++) {smoothVerts(pts);}
+        for (var i=0; i<3; i++) {smoothVerts(pts);}
+
+        this.matter.verts.scale(pts, 0.25+0.5*Math.random(), 1);
 
         for (var i=0; i<pts.length; i++) {
             shape_smooth_str += pts[i].x + ' ' + pts[i].y + ' ';
