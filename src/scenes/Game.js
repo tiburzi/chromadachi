@@ -92,15 +92,16 @@ class Game extends Phaser.Scene {
     }
 
     createPolyFromVerts(_x, _y, vert_string) {
-        var poly = this.add.polygon(_x, _y, vert_string, 0x0000ff, 0.2);
+        var poly = this.add.polygon(_x, _y, vert_string, 0x0000ff, 0.2, { restitution: 0.1 });
         this.matter.add.gameObject(poly, { shape: { type: 'fromVerts', verts: vert_string, flagInternal: true } });
     }
 
     addRandomShape() {
-        var x = Phaser.Math.Between(100, 700);
+        /*var x = Phaser.Math.Between(100, 700);
         var y = Phaser.Math.Between(100, 500);
 
-        /*if (Math.random() < 0.7)
+        //create random shapes
+        if (Math.random() < 0.7)
         {
             var sides = Phaser.Math.Between(3, 14);
             var radius = Phaser.Math.Between(8, 50);
@@ -116,14 +117,14 @@ class Game extends Phaser.Scene {
         }*/
 
         var arrow = '40 0 40 20 100 20 100 80 40 80 40 100 0 50';
-        var min_r = 50;
+        var min_r = 100;
         var max_r = 150;
 
         var shape_str = '';
         var pts = [];
         var pts_max = 30;
         var dis = Phaser.Math.Between(min_r, max_r);
-        for (var i=0; i<pts_max; i++) {
+        for (let i=0; i<pts_max; i++) {
             var angle = 2*Math.PI * (i/pts_max);
             if (Math.random() < 0.5)
                 dis = Phaser.Math.Clamp(dis + Phaser.Math.Between(-50, 50), min_r, max_r);
@@ -137,10 +138,21 @@ class Game extends Phaser.Scene {
         }
         this.createPolyFromVerts(300, 400, shape_str);
 
+        //add a flat face to the rock
+        var count = Phaser.Math.Between(5, 20);
+        var start = Phaser.Math.Between(0, pts.length-1);
+        var p_start = pts[start];
+        var p_end = pts[Phaser.Math.Wrap(start+count, 0, pts.length)];
+        for (let i=0; i<count; i++) {
+            let j = Phaser.Math.Wrap(start+i, 0, pts.length);
+            pts[j].x = Phaser.Math.Linear(p_start.x, p_end.x, i/count) + Phaser.Math.FloatBetween(-5.0, 5.0);
+            pts[j].y = Phaser.Math.Linear(p_start.y, p_end.y, i/count) + Phaser.Math.FloatBetween(-5.0, 5.0);;
+        }
+
         //smooth shape
         function smoothVerts(pts) {
             var relax = 0.5;
-            for (var i=0; i<pts.length; i++) {
+            for (let i=0; i<pts.length; i++) {
                 var j = Phaser.Math.Wrap(i+1, 0, pts.length);
                 pts[i].x = Phaser.Math.Linear(pts[i].x, pts[j].x, relax);
                 pts[i].y = Phaser.Math.Linear(pts[i].y, pts[j].y, relax);
@@ -151,9 +163,11 @@ class Game extends Phaser.Scene {
         var shape_smooth_str = '';
         for (var i=0; i<3; i++) {smoothVerts(pts);}
 
-        this.matter.verts.scale(pts, 0.25+0.5*Math.random(), 1);
+        var xscale = Phaser.Math.FloatBetween(1, Math.random() < 0.8 ? 0.25+0.5*Math.random() : 1);
+        var yscale = Phaser.Math.FloatBetween(1, Math.random() < 0.3 ? 1.5 : 1);
+        this.matter.verts.scale(pts, xscale, yscale);
 
-        for (var i=0; i<pts.length; i++) {
+        for (let i=0; i<pts.length; i++) {
             shape_smooth_str += pts[i].x + ' ' + pts[i].y + ' ';
         }
         this.createPolyFromVerts(600, 400, shape_smooth_str);
