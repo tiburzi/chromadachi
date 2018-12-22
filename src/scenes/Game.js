@@ -122,7 +122,7 @@ class Game extends Phaser.Scene {
     }
 
     createPolyFromVerts(_x, _y, vert_string) {
-        var poly = this.add.polygon(_x, _y, vert_string, 0x0000ff, 0.2, { restitution: 0.1 });
+        var poly = this.add.polygon(_x, _y, vert_string, 0x0000ff, 0.2);
         return this.matter.add.gameObject(poly, { shape: { type: 'fromVerts', verts: vert_string, flagInternal: true } });
     }
 
@@ -173,8 +173,9 @@ class Game extends Phaser.Scene {
         }
         var rock = this.createPolyFromVerts(rock_x, rock_y, shape_str);
 
-        //rock.setDensity(10);
-        rock.setFriction(.8);
+        rock.setDensity(1000);
+        rock.setFriction(.9, .01, 1000); //(overall, air, static)
+        rock.setBounce(0);
 
     }
 
