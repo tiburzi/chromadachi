@@ -91,11 +91,6 @@ class Game extends Phaser.Scene {
         ground.setMask(mask);
     }
 
-    createPolyFromVerts(_x, _y, vert_string) {
-        var poly = this.add.polygon(_x, _y, vert_string, 0x0000ff, 0.2, { restitution: 0.1 });
-        this.matter.add.gameObject(poly, { shape: { type: 'fromVerts', verts: vert_string, flagInternal: true } });
-    }
-
     addRandomShape() {
         /*var x = Phaser.Math.Between(100, 700);
         var y = Phaser.Math.Between(100, 500);
@@ -115,12 +110,28 @@ class Game extends Phaser.Scene {
 
             this.matter.add.rectangle(x, y, width, height, { restitution: 0.5 });
         }*/
+    }
 
+    smoothVerts(pts) {
+        var relax = 0.5;
+        for (let i=0; i<pts.length; i++) {
+            var j = Phaser.Math.Wrap(i+1, 0, pts.length);
+            pts[i].x = Phaser.Math.Linear(pts[i].x, pts[j].x, relax);
+            pts[i].y = Phaser.Math.Linear(pts[i].y, pts[j].y, relax);
+        }
+    }
+
+    createPolyFromVerts(_x, _y, vert_string) {
+        var poly = this.add.polygon(_x, _y, vert_string, 0x0000ff, 0.2, { restitution: 0.1 });
+        return this.matter.add.gameObject(poly, { shape: { type: 'fromVerts', verts: vert_string, flagInternal: true } });
+    }
+
+    createRock(rock_x, rock_y) {
         var arrow = '40 0 40 20 100 20 100 80 40 80 40 100 0 50';
-        var min_r = 100;
+        var min_r = 80;
         var max_r = 150;
 
-        var shape_str = '';
+        //generate a random enclosed shape
         var pts = [];
         var pts_max = 30;
         var dis = Phaser.Math.Between(min_r, max_r);
@@ -133,13 +144,10 @@ class Game extends Phaser.Scene {
                 y: dis*Math.sin(angle)
             }
             pts.push(v);
-
-            shape_str += v.x + ' ' + v.y + ' ';
         }
-        this.createPolyFromVerts(300, 400, shape_str);
 
-        //add a flat face to the rock
-        var count = Phaser.Math.Between(5, 20);
+        //flatten a side of the shape (make vertices colinear)
+        var count = Phaser.Math.Between(5, 15);
         var start = Phaser.Math.Between(0, pts.length-1);
         var p_start = pts[start];
         var p_end = pts[Phaser.Math.Wrap(start+count, 0, pts.length)];
@@ -150,27 +158,23 @@ class Game extends Phaser.Scene {
         }
 
         //smooth shape
-        function smoothVerts(pts) {
-            var relax = 0.5;
-            for (let i=0; i<pts.length; i++) {
-                var j = Phaser.Math.Wrap(i+1, 0, pts.length);
-                pts[i].x = Phaser.Math.Linear(pts[i].x, pts[j].x, relax);
-                pts[i].y = Phaser.Math.Linear(pts[i].y, pts[j].y, relax);
-            }
-        }
+        var passes = Phaser.Math.Between(2, 5);
+        for (var i=0; i<passes; i++) {this.smoothVerts(pts);}
 
-        //create smoothed shape as physics body
-        var shape_smooth_str = '';
-        for (var i=0; i<3; i++) {smoothVerts(pts);}
-
-        var xscale = Phaser.Math.FloatBetween(1, Math.random() < 0.8 ? 0.25+0.5*Math.random() : 1);
-        var yscale = Phaser.Math.FloatBetween(1, Math.random() < 0.3 ? 1.5 : 1);
+        //warp shape
+        var xscale = Phaser.Math.FloatBetween(1, Math.random() < 0.8 ? Phaser.Math.FloatBetween(0.2, 0.6) : 1);
+        var yscale = Phaser.Math.FloatBetween(1, Math.random() < 0.3 ? Phaser.Math.FloatBetween(1.0, 1.6) : 1);
         this.matter.verts.scale(pts, xscale, yscale);
 
+        //create rock
+        var shape_str = '';
         for (let i=0; i<pts.length; i++) {
-            shape_smooth_str += pts[i].x + ' ' + pts[i].y + ' ';
+            shape_str += pts[i].x + ' ' + pts[i].y + ' ';
         }
-        this.createPolyFromVerts(600, 400, shape_smooth_str);
+        var rock = this.createPolyFromVerts(rock_x, rock_y, shape_str);
+
+        //rock.setDensity(10);
+        rock.setFriction(.8);
 
     }
 
@@ -184,8 +188,10 @@ class Game extends Phaser.Scene {
 
         this.matter.world.setBounds();
 
-    	for (var i = 0; i < 1; i++) {
-            this.addRandomShape();
+    	for (var i = 0; i < 5; i++) {
+            var _x = Phaser.Math.Between(200, game_w-200);
+            var _y = Phaser.Math.Between(100, game_h-300);
+            this.createRock(_x, _y);
         }
 
         this.matter.add.mouseSpring();
