@@ -91,11 +91,16 @@ class Game extends Phaser.Scene {
         ground.setMask(mask);
     }
 
+    createPolyFromVerts(_x, _y, vert_string) {
+        var poly = this.add.polygon(_x, _y, vert_string, 0x0000ff, 0.2);
+        this.matter.add.gameObject(poly, { shape: { type: 'fromVerts', verts: vert_string, flagInternal: true } });
+    }
+
     addRandomShape() {
         var x = Phaser.Math.Between(100, 700);
         var y = Phaser.Math.Between(100, 500);
 
-        if (Math.random() < 0.7)
+        /*if (Math.random() < 0.7)
         {
             var sides = Phaser.Math.Between(3, 14);
             var radius = Phaser.Math.Between(8, 50);
@@ -108,7 +113,45 @@ class Game extends Phaser.Scene {
             var height = Phaser.Math.Between(8, 64);
 
             this.matter.add.rectangle(x, y, width, height, { restitution: 0.5 });
+        }*/
+
+        var arrow = '40 0 40 20 100 20 100 80 40 80 40 100 0 50';
+
+        var shape_str = '';
+        var pts = [];
+        var pts_max = 40;
+        for (var i=0; i<pts_max; i++) {
+            var angle = 2*Math.PI * (i/pts_max);
+            var dis = Phaser.Math.Between(50, 200);
+            var v = {
+                x: dis*Math.cos(angle),
+                y: dis*Math.sin(angle)
+            }
+            pts.push(v);
+
+            shape_str += v.x + ' ' + v.y + ' ';
         }
+        this.createPolyFromVerts(300, 400, shape_str);
+
+        //smooth shape
+        function smoothVerts(pts) {
+            var relax = 0.5;
+            for (var i=0; i<pts.length; i++) {
+                var j = Phaser.Math.Wrap(i+1, 0, pts.length);
+                pts[i].x = Phaser.Math.Linear(pts[i].x, pts[j].x, relax);
+                pts[i].y = Phaser.Math.Linear(pts[i].y, pts[j].y, relax);
+            }
+        }
+
+        //create smoothed shape as physics body
+        var shape_smooth_str = '';
+        for (var i=0; i<5; i++) {smoothVerts(pts);}
+
+        for (var i=0; i<pts.length; i++) {
+            shape_smooth_str += pts[i].x + ' ' + pts[i].y + ' ';
+        }
+        this.createPolyFromVerts(600, 400, shape_smooth_str);
+
     }
 
     create() {    	
@@ -121,7 +164,7 @@ class Game extends Phaser.Scene {
 
         this.matter.world.setBounds();
 
-    	for (var i = 0; i < 50; i++) {
+    	for (var i = 0; i < 1; i++) {
             this.addRandomShape();
         }
 
