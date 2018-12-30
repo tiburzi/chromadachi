@@ -188,11 +188,11 @@ class Game extends Phaser.Scene {
         var rock = this.createPolyFromVerts(rock_x, rock_y, shape_str);
 
         //set rock physics properties
-        rock.setDensity(100);
-        rock.setFriction(.99, .2, 1); //(overall, air, static)
+        rock.setDensity(.00001);
+        rock.setFriction(1, .01, 1); //(overall, air, static)
         rock.setBounce(0);
-        //rock.body.inertia *= 2;
-        //rock.body.inverseInertia = 1/rock.body.inertia;
+        rock.inertia_static = rock.body.inertia*10;
+        rock.inertia_dynamic = rock.body.inertia;
 
         //set rock tiled image (help from https://goo.gl/VC8dK2)
         var tex = this.add.tileSprite(0, 0, 3*max_r, 3*max_r, 'stone-tile');
@@ -238,9 +238,9 @@ class Game extends Phaser.Scene {
 
         this.matter.world.setBounds();
         var floor = this.matter.add.rectangle(0.5*game_w, game_h-15, game_w, 30, {isStatic: true});
-        //floor.friction = .9;
+        floor.friction = .9;
 
-    	for (var i = 0; i < 2; i++) {
+    	for (var i = 0; i < 5; i++) {
             var _x = Phaser.Math.Between(200, game_w-200);
             var _y = Phaser.Math.Between(100, game_h-300);
             this.createRock(_x, _y);
@@ -271,6 +271,14 @@ class Game extends Phaser.Scene {
             r.mask_shape.y = r.tex.y = r.y;
             r.mask_shape.angle = r.tex.angle = r.angle;
 
+            var speed_threshold = 0.5;
+            if (r.body.speed < speed_threshold && r.stableFrames > 4) {
+                r.body.inertia = r.inertia_static;
+            } else {
+                r.body.inertia = r.inertia_dynamic;
+            }
+            r.body.inverseInertia = 1/r.body.inertia;
+
             if (this.isReversing) {
                 // Rewind back as long as there is something to rewind 
                 if (r.positions.length != 0) {
@@ -288,7 +296,7 @@ class Game extends Phaser.Scene {
             let dAngle = r.angle - r.pastAngle;
             let thresholdXY = 5;
             let thresholdAngle = 0.5;
-            let stableFramesNeeded = 3;
+            let stableFramesNeeded = 30;
 
             if(Math.abs(dx) > thresholdXY || Math.abs(dy) > thresholdXY || Math.abs(dAngle) > thresholdAngle) {
                 // Record position
