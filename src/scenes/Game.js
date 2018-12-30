@@ -5,6 +5,7 @@ class Game extends Phaser.Scene {
     	super('Game');
 
     	this.pCounter = 0;
+        this.rockCounter = 0;
     }
 
     debugUpdate() {
@@ -178,15 +179,40 @@ class Game extends Phaser.Scene {
         }
         var rock = this.createPolyFromVerts(rock_x, rock_y, shape_str);
 
+        //set rock physics properties
         rock.setDensity(1000);
         rock.setFriction(.9, .01, 1000); //(overall, air, static)
         rock.setBounce(0);
 
+        //set rock tiled image (help from https://goo.gl/VC8dK2)
+        var tex = this.add.tileSprite(0, 0, 2*max_r, 2*max_r, 'stone-tile');
+        var mask_shape = this.make.graphics();
+        mask_shape.fillStyle(0xffffff);
+        mask_shape.beginPath();
+        var geom_pts = [];
+        for (let i=0; i<pts.length; i++) {
+            geom_pts.push(new Phaser.Geom.Point(pts[i].x, pts[i].y));
+        }
+        mask_shape.fillPoints(geom_pts, true);
+
+        var mask = mask_shape.createGeometryMask();
+        tex.setMask(mask);
+        rock.tex = tex;
+        rock.mask_shape = mask_shape;
+
+        //save reference to object
+        rock.uniqueID = this.rockCounter++;
+        this.rocksArray.push(rock);
+        this.rocksKeys[rock.uniqueID] = rock;
+
+        return rock;
     }
 
     create() {    	
     	this.particles = [];
     	this.particleKeys = {};
+        this.rocksArray = [];
+        this.rocksKeys = {};
     	this.initKeys();
 
         var game_w = this.game.config.width;
@@ -208,6 +234,12 @@ class Game extends Phaser.Scene {
 
     update() {
     	this.debugUpdate();
+        for (let i=0; i<this.rocksArray.length; i++) {
+            var r = this.rocksArray[i];
+            r.mask_shape.x = r.tex.x = r.x;
+            r.mask_shape.y = r.tex.y = r.y;
+            r.mask_shape.angle = r.tex.angle = r.angle;
+        }
     }
 }
 
