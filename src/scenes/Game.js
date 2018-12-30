@@ -137,7 +137,7 @@ class Game extends Phaser.Scene {
 
         //generate a random enclosed shape
         var pts = [];
-        var pts_max = 10+Phaser.Math.CeilTo(r/5);
+        var pts_max = 20+Phaser.Math.CeilTo(r/5);
         for (let i=0; i<pts_max; i++) {
             var angle = 2*Math.PI * (i/pts_max);
             if (Math.random() < 0.5)
@@ -163,11 +163,11 @@ class Game extends Phaser.Scene {
         }
 
         //smooth shape
-        var passes = Phaser.Math.Between(2, 5);
+        var passes = Phaser.Math.Between(2, 6);
         for (var i=0; i<passes; i++) {this.smoothVerts(pts);}
 
         //warp shape
-        var xscale = Phaser.Math.FloatBetween(1, Math.random() < 0.8 ? Phaser.Math.FloatBetween(0.2, 0.6) : 1);
+        var xscale = Phaser.Math.FloatBetween(1, Math.random() < 0.8 ? Phaser.Math.FloatBetween(0.2, 0.5) : 1);
         var yscale = Phaser.Math.FloatBetween(1, Math.random() < 0.3 ? Phaser.Math.FloatBetween(1.0, 1.6) : 1);
         this.matter.verts.scale(pts, xscale, yscale);
 
@@ -181,11 +181,11 @@ class Game extends Phaser.Scene {
         var rock = this.createPolyFromVerts(rock_x, rock_y, shape_str);
 
         //set rock physics properties
-        //rock.setDensity(100);
-        rock.setFriction(1, .1, Infinity); //(overall, air, static)
+        rock.setDensity(100);
+        rock.setFriction(.99, .2, 1); //(overall, air, static)
         rock.setBounce(0);
-        rock.body.inertia = 300000;
-        rock.body.inverseInertia = 1/rock.body.inertia;
+        //rock.body.inertia *= 2;
+        //rock.body.inverseInertia = 1/rock.body.inertia;
 
         //set rock tiled image (help from https://goo.gl/VC8dK2)
         var tex = this.add.tileSprite(0, 0, 3*max_r, 3*max_r, 'stone-tile');
@@ -224,6 +224,7 @@ class Game extends Phaser.Scene {
 
         this.matter.world.setBounds();
         var floor = this.matter.add.rectangle(0.5*game_w, game_h-15, game_w, 30, {isStatic: true});
+        //floor.friction = .9;
 
     	for (var i = 0; i < 5; i++) {
             var _x = Phaser.Math.Between(200, game_w-200);
