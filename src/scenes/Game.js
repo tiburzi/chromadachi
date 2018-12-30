@@ -5,7 +5,6 @@ class Game extends Phaser.Scene {
     	super('Game');
 
     	this.pCounter = 0;
-        this.rockCounter = 0;
     }
 
     debugUpdate() {
@@ -201,7 +200,8 @@ class Game extends Phaser.Scene {
         rock.mask_shape = mask_shape;
 
         //save reference to object
-        rock.uniqueID = this.rockCounter++;
+        rock.uniqueID = rock.body.id;
+        console.log(rock.uniqueID);
         this.rocksArray.push(rock);
         this.rocksKeys[rock.uniqueID] = rock;
 
