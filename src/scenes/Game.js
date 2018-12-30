@@ -188,12 +188,14 @@ class Game extends Phaser.Scene {
         var rock = this.createPolyFromVerts(rock_x, rock_y, shape_str);
 
         //set rock physics properties
-        rock.setDensity(1000);
-        rock.setFriction(.9, .01, 1000); //(overall, air, static)
+        //rock.setDensity(100);
+        rock.setFriction(1, .1, Infinity); //(overall, air, static)
         rock.setBounce(0);
+        rock.body.inertia = 300000;
+        rock.body.inverseInertia = 1/rock.body.inertia;
 
         //set rock tiled image (help from https://goo.gl/VC8dK2)
-        var tex = this.add.tileSprite(0, 0, 2*max_r, 2*max_r, 'stone-tile');
+        var tex = this.add.tileSprite(0, 0, 3*max_r, 3*max_r, 'stone-tile');
         var mask_shape = this.make.graphics();
 
         mask_shape.fillStyle(0xffffff);
@@ -211,7 +213,6 @@ class Game extends Phaser.Scene {
 
         //save reference to object
         rock.uniqueID = rock.body.id;
-        console.log(rock.uniqueID);
         this.rocksArray.push(rock);
         this.rocksKeys[rock.uniqueID] = rock;
 
