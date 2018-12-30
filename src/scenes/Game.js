@@ -128,8 +128,7 @@ class Game extends Phaser.Scene {
 
     createRock(rock_x, rock_y) {
         var arrow = '40 0 40 20 100 20 100 80 40 80 40 100 0 50';
-        var min_r = 80;
-        var max_r = 150;
+        var max_r = 140;
 
         //generate a random enclosed shape
         var pts = [];
@@ -188,6 +187,7 @@ class Game extends Phaser.Scene {
     	var game_h = this.game.config.height;
 
         this.matter.world.setBounds();
+        var floor = this.matter.add.rectangle(0.5*game_w, game_h-15, game_w, 30, {isStatic: true});
 
     	for (var i = 0; i < 5; i++) {
             var _x = Phaser.Math.Between(200, game_w-200);
@@ -195,7 +195,9 @@ class Game extends Phaser.Scene {
             this.createRock(_x, _y);
         }
 
-        this.matter.add.mouseSpring();
+        this.matter.add.mouseSpring({
+            angularStiffness: 0.7
+        });
     }
 
     update() {
