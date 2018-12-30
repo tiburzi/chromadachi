@@ -115,9 +115,12 @@ class Game extends Phaser.Scene {
     smoothVerts(pts) {
         var relax = 0.5;
         for (let i=0; i<pts.length; i++) {
-            var j = Phaser.Math.Wrap(i+1, 0, pts.length);
-            pts[i].x = Phaser.Math.Linear(pts[i].x, pts[j].x, relax);
-            pts[i].y = Phaser.Math.Linear(pts[i].y, pts[j].y, relax);
+            var prev = pts[Phaser.Math.Wrap(i-1, 0, pts.length)];
+            var next = pts[Phaser.Math.Wrap(i+1, 0, pts.length)];
+            var center_x = Phaser.Math.Linear(prev.x, next.x, 0.5);
+            var center_y = Phaser.Math.Linear(prev.y, next.y, 0.5);
+            pts[i].x = Phaser.Math.Linear(pts[i].x, center_x, relax);
+            pts[i].y = Phaser.Math.Linear(pts[i].y, center_y, relax);
         }
     }
 
@@ -128,32 +131,35 @@ class Game extends Phaser.Scene {
 
     createRock(rock_x, rock_y) {
         var arrow = '40 0 40 20 100 20 100 80 40 80 40 100 0 50';
-        var max_r = 140;
+        var min_r = 50;
+        var max_r = 150;
+        var r = Phaser.Math.Between(min_r, max_r);
 
         //generate a random enclosed shape
         var pts = [];
-        var pts_max = 30;
-        var dis = Phaser.Math.Between(min_r, max_r);
+        var pts_max = 10+Phaser.Math.CeilTo(r/5);
         for (let i=0; i<pts_max; i++) {
             var angle = 2*Math.PI * (i/pts_max);
             if (Math.random() < 0.5)
-                dis = Phaser.Math.Clamp(dis + Phaser.Math.Between(-50, 50), min_r, max_r);
+                r = Phaser.Math.Clamp(r + Phaser.Math.Between(-50, 50), min_r, max_r);
             var v = {
-                x: dis*Math.cos(angle),
-                y: dis*Math.sin(angle)
+                x: r*Math.cos(angle),
+                y: r*Math.sin(angle)
             }
             pts.push(v);
         }
 
         //flatten a side of the shape (make vertices colinear)
-        var count = Phaser.Math.Between(5, 15);
-        var start = Phaser.Math.Between(0, pts.length-1);
-        var p_start = pts[start];
-        var p_end = pts[Phaser.Math.Wrap(start+count, 0, pts.length)];
-        for (let i=0; i<count; i++) {
-            let j = Phaser.Math.Wrap(start+i, 0, pts.length);
-            pts[j].x = Phaser.Math.Linear(p_start.x, p_end.x, i/count) + Phaser.Math.FloatBetween(-5.0, 5.0);
-            pts[j].y = Phaser.Math.Linear(p_start.y, p_end.y, i/count) + Phaser.Math.FloatBetween(-5.0, 5.0);;
+        if (r > 80) {
+            var count = Phaser.Math.Between(pts_max/8, pts_max/2);
+            var start = Phaser.Math.Between(0, pts.length-1);
+            var p_start = pts[start];
+            var p_end = pts[Phaser.Math.Wrap(start+count, 0, pts.length)];
+            for (let i=0; i<count; i++) {
+                let j = Phaser.Math.Wrap(start+i, 0, pts.length);
+                pts[j].x = Phaser.Math.Linear(p_start.x, p_end.x, i/count) + Phaser.Math.FloatBetween(-5.0, 5.0);
+                pts[j].y = Phaser.Math.Linear(p_start.y, p_end.y, i/count) + Phaser.Math.FloatBetween(-5.0, 5.0);;
+            }
         }
 
         //smooth shape
