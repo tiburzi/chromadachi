@@ -221,6 +221,7 @@ class Game extends Phaser.Scene {
         rock.pastX = rock.x; 
         rock.pastY = rock.y;
         rock.pastAngle = rock.angle;
+        rock.stableFrames = 0;
 
         return rock;
     }
@@ -286,6 +287,7 @@ class Game extends Phaser.Scene {
             let dAngle = r.angle - r.pastAngle;
             let thresholdXY = 5;
             let thresholdAngle = 0.5;
+            let stableFramesNeeded = 3;
 
             if(Math.abs(dx) > thresholdXY || Math.abs(dy) > thresholdXY || Math.abs(dAngle) > thresholdAngle) {
                 // Record position
@@ -293,6 +295,12 @@ class Game extends Phaser.Scene {
                 r.pastY = r.y;
                 r.pastAngle = r.angle;
                 r.positions.push({x:r.x, y:r.y, angle:r.angle});
+                r.stableFrames = 0;
+            } else {
+                r.stableFrames ++;
+                if (r.stableFrames > stableFramesNeeded) {
+                    r.positions = [];
+                }
             }
         }
 
