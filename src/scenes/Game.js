@@ -1,10 +1,17 @@
 import 'phaser';
 
+// TODO
+
+
+// 4- Once done, finish reversal, undo sensor, and undo static
+// 5- Every time a rock stabilizes (still for X frames?), clear the positions array
+
 class Game extends Phaser.Scene {
     constructor(config) {
     	super('Game');
 
     	this.pCounter = 0;
+        this.isReversing = false;
     }
 
     debugUpdate() {
@@ -18,7 +25,7 @@ class Game extends Phaser.Scene {
     initKeys() {
     	this.keys  = {
     		'spacebar' : this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE),
-    		'B' : this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.B)
+    		'R' : this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.R)
     	}
 	}
 
@@ -209,6 +216,12 @@ class Game extends Phaser.Scene {
         this.rocksArray.push(rock);
         this.rocksKeys[rock.uniqueID] = rock;
 
+        // Initialize array to keep track of positions 
+        rock.positions = [];
+        rock.pastX = rock.x; 
+        rock.pastY = rock.y;
+        rock.pastAngle = rock.angle;
+
         return rock;
     }
 
@@ -226,7 +239,7 @@ class Game extends Phaser.Scene {
         var floor = this.matter.add.rectangle(0.5*game_w, game_h-15, game_w, 30, {isStatic: true});
         //floor.friction = .9;
 
-    	for (var i = 0; i < 5; i++) {
+    	for (var i = 0; i < 2; i++) {
             var _x = Phaser.Math.Between(200, game_w-200);
             var _y = Phaser.Math.Between(100, game_h-300);
             this.createRock(_x, _y);
@@ -239,11 +252,58 @@ class Game extends Phaser.Scene {
 
     update() {
     	this.debugUpdate();
+        
+        if (Phaser.Input.Keyboard.JustDown(this.keys.R) && !this.isReversing) { 
+            this.isReversing = true;
+            // Disable collision (set sensor) and set all rocks to static 
+            for(let rock of this.rocksArray) {
+                rock.body.collisionFilter.group = -1;
+                rock.setStatic(true);
+            }
+        }
+
+        let allDoneReversing = true;
+
         for (let i=0; i<this.rocksArray.length; i++) {
             var r = this.rocksArray[i];
             r.mask_shape.x = r.tex.x = r.x;
             r.mask_shape.y = r.tex.y = r.y;
             r.mask_shape.angle = r.tex.angle = r.angle;
+
+            if (this.isReversing) {
+                // Rewind back as long as there is something to rewind 
+                if (r.positions.length != 0) {
+                    allDoneReversing = false;
+                    let pos = r.positions.pop();
+                    r.x = pos.x; 
+                    r.y = pos.y; 
+                    r.angle = pos.angle;
+                }
+                continue;
+            }
+
+            let dx = r.x - r.pastX; 
+            let dy = r.y - r.pastY;
+            let dAngle = r.angle - r.pastAngle;
+            let thresholdXY = 5;
+            let thresholdAngle = 0.5;
+
+            if(Math.abs(dx) > thresholdXY || Math.abs(dy) > thresholdXY || Math.abs(dAngle) > thresholdAngle) {
+                // Record position
+                r.pastX = r.x; 
+                r.pastY = r.y;
+                r.pastAngle = r.angle;
+                r.positions.push({x:r.x, y:r.y, angle:r.angle});
+            }
+        }
+
+        if (this.isReversing && allDoneReversing) {
+            // Redo collision filters and static 
+            for(let rock of this.rocksArray) {
+                rock.body.collisionFilter.group = 0;
+                rock.setStatic(false);
+            }
+            this.isReversing = false;
         }
     }
 }
