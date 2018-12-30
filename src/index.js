@@ -14,7 +14,7 @@ var game = new Phaser.Game({
         matter: {
             gravity: {
                 x: 0,
-                y: 1
+                y: 5
             },
             debug: true
         }
