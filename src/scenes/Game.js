@@ -171,6 +171,8 @@ class Game extends Phaser.Scene {
         var yscale = Phaser.Math.FloatBetween(1, Math.random() < 0.3 ? Phaser.Math.FloatBetween(1.0, 1.6) : 1);
         this.matter.verts.scale(pts, xscale, yscale);
 
+        var C = this.matter.verts.centre(pts);
+
         //create rock
         var shape_str = '';
         for (let i=0; i<pts.length; i++) {
@@ -186,11 +188,12 @@ class Game extends Phaser.Scene {
         //set rock tiled image (help from https://goo.gl/VC8dK2)
         var tex = this.add.tileSprite(0, 0, 2*max_r, 2*max_r, 'stone-tile');
         var mask_shape = this.make.graphics();
+
         mask_shape.fillStyle(0xffffff);
         mask_shape.beginPath();
         var geom_pts = [];
         for (let i=0; i<pts.length; i++) {
-            geom_pts.push(new Phaser.Geom.Point(pts[i].x, pts[i].y));
+            geom_pts.push(new Phaser.Geom.Point(pts[i].x - C.x, pts[i].y - C.y));
         }
         mask_shape.fillPoints(geom_pts, true);
 
