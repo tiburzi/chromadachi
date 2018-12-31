@@ -148,7 +148,7 @@ class Game extends Phaser.Scene {
         for (let i=0; i<pts_max; i++) {
             var angle = 2*Math.PI * (i/pts_max);
             if (Math.random() < 0.5)
-                r = Phaser.Math.Clamp(r + Phaser.Math.Between(-50, 50), min_r, max_r);
+                r = Phaser.Math.Clamp(r + Phaser.Math.Between(-30, 30), min_r, max_r);
             var v = {
                 x: r*Math.cos(angle),
                 y: r*Math.sin(angle)
@@ -195,7 +195,8 @@ class Game extends Phaser.Scene {
         rock.inertia_dynamic = rock.body.inertia;
 
         //set rock tiled image (help from https://goo.gl/VC8dK2)
-        var tex = this.add.tileSprite(0, 0, 3*max_r, 3*max_r, 'stone-tile');
+        var sprite = 'stone_tex_'+Phaser.Math.Wrap(this.rocksArray.length, 1, 6).toString();//Phaser.Math.Between(1, 5).toString();
+        var tex = this.add.tileSprite(0, 0, 3*max_r, 3*max_r, sprite);
         var mask_shape = this.make.graphics();
 
         mask_shape.fillStyle(0xffffff);
