@@ -22,7 +22,7 @@ class Loading extends Phaser.Scene {
     	// heavy stuff here up front 
     	this.load.image('logo', 'assets/logo.png');
     	this.load.image('block', 'assets/block.png');
-    	this.load.image('stone-tile', 'assets/stone_tile.png');
+    	this.load.image('stone_tile', 'assets/stone_tile.png');
         this.load.image('stone_tex_1', 'assets/stone_texture_01.png');
         this.load.image('stone_tex_2', 'assets/stone_texture_02.png');
         this.load.image('stone_tex_3', 'assets/stone_texture_03.png');

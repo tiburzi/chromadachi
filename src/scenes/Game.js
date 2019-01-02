@@ -138,6 +138,26 @@ class Game extends Phaser.Scene {
         return this.matter.add.gameObject(poly, { shape: { type: 'fromVerts', verts: vert_string, flagInternal: true } });
     }
 
+    addMaskedSpriteTile(obj, sprite, w, h, pts) {
+        //set tiled image (help from https://goo.gl/VC8dK2)
+        var tex = this.add.tileSprite(0, 0, w, h, sprite);
+        var C = this.matter.verts.centre(pts);
+
+        var mask_shape = this.make.graphics();
+        mask_shape.fillStyle(0xffffff);
+        mask_shape.beginPath();
+        var geom_pts = [];
+        for (let i=0; i<pts.length; i++) {
+            geom_pts.push(new Phaser.Geom.Point(pts[i].x - C.x, pts[i].y - C.y));
+        }
+        mask_shape.fillPoints(geom_pts, true);
+
+        var mask = mask_shape.createGeometryMask();
+        tex.setMask(mask);
+        obj.tex = tex;
+        obj.mask_shape = mask_shape;
+    }
+
     createRock(rock_x, rock_y, rock_size) {
         var min_r = 50;
         var max_r = 150;
@@ -196,24 +216,9 @@ class Game extends Phaser.Scene {
         rock.inertia_static = rock.body.inertia*1000;
         rock.inertia_dynamic = rock.body.inertia;
 
-        //set rock tiled image (help from https://goo.gl/VC8dK2)
-        var sprite = 'stone_tex_'+Phaser.Math.Wrap(this.rocksArray.length, 1, 6).toString();//Phaser.Math.Between(1, 5).toString();
-        var tex = this.add.tileSprite(0, 0, 3*max_r, 3*max_r, sprite);
-        var C = this.matter.verts.centre(pts);
-
-        var mask_shape = this.make.graphics();
-        mask_shape.fillStyle(0xffffff);
-        mask_shape.beginPath();
-        var geom_pts = [];
-        for (let i=0; i<pts.length; i++) {
-            geom_pts.push(new Phaser.Geom.Point(pts[i].x - C.x, pts[i].y - C.y));
-        }
-        mask_shape.fillPoints(geom_pts, true);
-
-        var mask = mask_shape.createGeometryMask();
-        tex.setMask(mask);
-        rock.tex = tex;
-        rock.mask_shape = mask_shape;
+        //add masked, tiled sprite to rock
+        var sprite = 'stone_tex_'+Phaser.Math.Wrap(this.rocksArray.length, 1, 6).toString();
+        this.addMaskedSpriteTile(rock, sprite, 3*max_r, 3*max_r, pts);
 
         //save reference to object
         rock.uniqueID = rock.body.id;
@@ -239,13 +244,16 @@ class Game extends Phaser.Scene {
         var pts = [];
         var pts_max = 100;
         var rough = false;
+        var prev = 100;
+        var left_side = -0.5*game_w-50;
+        var right_side = 0.5*game_w+50;
         for (let i=0; i<=pts_max; i++) {
-            if (Math.random() < 0.02) {rough = !rough;}
-            var elevation = rough ? Phaser.Math.Between(100, 200) : Phaser.Math.Between(50, 100);
-            console.log(rough.toString() + "    " + elevation);
+            if (Math.random() < 0.04) {rough = !rough;}
+            var elevation = (rough && Math.random() < .9) ? prev : Phaser.Math.Between(50, 100);
+            var prev = elevation;
             var v = {
-                x: -50+(game_w+100)*(i/pts_max),
-                y: game_h-elevation
+                x: Phaser.Math.Linear(left_side, right_side, i/pts_max),
+                y: -elevation
             }
             pts.push(v);
         }
@@ -253,9 +261,13 @@ class Game extends Phaser.Scene {
         //smooth shape
         this.smoothVerts(pts, 5, false, true);
 
+        //add small noise
+        pts.forEach(function(p) {if (Math.random() < .04) {p.y -= Phaser.Math.Between(10, 30);}});
+        this.smoothVerts(pts, 1, false, true);
+
         //add vertices off screen to complete the shape
-        pts.push({ x: game_w+50, y: game_h });
-        pts.push({ x: -50, y: game_h });
+        pts.push({ x: right_side, y: 0 });
+        pts.push({ x: left_side, y: 0 });
 
         //create ground object
         var shape_str = '';
@@ -263,9 +275,16 @@ class Game extends Phaser.Scene {
             shape_str += pts[i].x + ' ' + pts[i].y + ' ';
         }
         var C = this.matter.verts.centre(pts);
-        var ground = this.createPolyFromVerts(C.x, C.y, shape_str);
-        ground.setStatic(true);
+        var x = game_w*0.5 + C.x;
+        var y = game_h + C.y;
+        var ground = this.createPolyFromVerts(x, y, shape_str);
+        
+        var sprite = 'stone_tile';
+        this.addMaskedSpriteTile(ground, 'stone_tile', game_w+100, 300, pts);
+        ground.mask_shape.x = ground.tex.x = x;
+        ground.mask_shape.y = ground.tex.y = y;
 
+        ground.setStatic(true);
         ground.friction = .9;
         return ground;
     }
@@ -286,7 +305,7 @@ class Game extends Phaser.Scene {
         var rocks = 10;
     	for (var i = 0; i < rocks; i++) {
             var _x = Phaser.Math.Between(250, game_w-250);
-            var _y = game_h-250;
+            var _y = game_h-Phaser.Math.Between(200, 350);
             var _size = Math.pow(i/rocks, 3);
             this.createRock(_x, _y, _size);
         }
