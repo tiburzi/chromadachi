@@ -119,15 +119,17 @@ class Game extends Phaser.Scene {
         }*/
     }
 
-    smoothVerts(pts) {
+    smoothVerts(pts, passes, smooth_xdir, smooth_ydir) {
         var relax = 0.6;
-        for (let i=0; i<pts.length; i++) {
-            var prev = pts[Phaser.Math.Wrap(i-1, 0, pts.length)];
-            var next = pts[Phaser.Math.Wrap(i+1, 0, pts.length)];
-            var center_x = Phaser.Math.Linear(prev.x, next.x, 0.5);
-            var center_y = Phaser.Math.Linear(prev.y, next.y, 0.5);
-            pts[i].x = Phaser.Math.Linear(pts[i].x, center_x, relax);
-            pts[i].y = Phaser.Math.Linear(pts[i].y, center_y, relax);
+        for (var i=0; i<passes; i++) {
+            for (let i=0; i<pts.length; i++) {
+                var prev = pts[Phaser.Math.Wrap(i-1, 0, pts.length)];
+                var next = pts[Phaser.Math.Wrap(i+1, 0, pts.length)];
+                var center_x = Phaser.Math.Linear(prev.x, next.x, 0.5);
+                var center_y = Phaser.Math.Linear(prev.y, next.y, 0.5);
+                if (smooth_xdir) {pts[i].x = Phaser.Math.Linear(pts[i].x, center_x, relax);}
+                if (smooth_ydir) {pts[i].y = Phaser.Math.Linear(pts[i].y, center_y, relax);}
+            }
         }
     }
 
@@ -140,7 +142,6 @@ class Game extends Phaser.Scene {
         var min_r = 50;
         var max_r = 150;
         var size = (rock_size === undefined ? Phaser.Math.FloatBetween(0,1) : rock_size);
-        console.log(size);
         var r = Phaser.Math.Linear(min_r, max_r, size);
 
         //generate a random enclosed shape
@@ -174,7 +175,7 @@ class Game extends Phaser.Scene {
 
         //smooth shape
         var passes = Phaser.Math.Between(3, 6);
-        for (var i=0; i<passes; i++) {this.smoothVerts(pts);}
+        this.smoothVerts(pts, passes, true, true);
 
         //warp shape
         var yscale = Math.random() < 0.7 ? Phaser.Math.FloatBetween(0.2, 0.6) : 1;
@@ -192,7 +193,7 @@ class Game extends Phaser.Scene {
         rock.setDensity(.00001);
         rock.setFriction(1, .01, 1); //(overall, air, static)
         rock.setBounce(0);
-        rock.inertia_static = rock.body.inertia*12;
+        rock.inertia_static = rock.body.inertia*1000;
         rock.inertia_dynamic = rock.body.inertia;
 
         //set rock tiled image (help from https://goo.gl/VC8dK2)
@@ -229,6 +230,45 @@ class Game extends Phaser.Scene {
         return rock;
     }
 
+    createGround() {
+        var game_w = this.game.config.width;
+        var game_h = this.game.config.height;
+        //var ground = this.matter.add.rectangle(0.5*game_w, game_h-15, game_w, 30, {isStatic: true});
+        
+        //generate ground's surface
+        var pts = [];
+        var pts_max = 100;
+        var rough = false;
+        for (let i=0; i<pts_max; i++) {
+            if (Math.random() < 0.02) {rough = !rough;}
+            var elevation = rough ? Phaser.Math.Between(100, 200) : Phaser.Math.Between(50, 100);
+            console.log(rough.toString() + "    " + elevation);
+            var v = {
+                x: -50+(game_w+100)*(i/pts_max),
+                y: game_h-elevation
+            }
+            pts.push(v);
+        }
+
+        //smooth shape
+        this.smoothVerts(pts, 5, false, true);
+
+        //add vertices off screen to complete the shape
+        pts.push({ x: game_w+50, y: game_h });
+        pts.push({ x: -50, y: game_h });
+
+        //create ground object
+        var shape_str = '';
+        for (let i=0; i<pts.length; i++) {
+            shape_str += pts[i].x + ' ' + pts[i].y + ' ';
+        }
+        var ground = this.createPolyFromVerts(0.5*game_w, game_h-50, shape_str);
+        ground.setStatic(true);
+
+        ground.friction = .9;
+        return ground;
+    }
+
     create() {    	
     	this.particles = [];
     	this.particleKeys = {};
@@ -240,8 +280,7 @@ class Game extends Phaser.Scene {
     	var game_h = this.game.config.height;
 
         this.matter.world.setBounds();
-        var floor = this.matter.add.rectangle(0.5*game_w, game_h-15, game_w, 30, {isStatic: true});
-        floor.friction = .9;
+        this.createGround();
 
         var rocks = 10;
     	for (var i = 0; i < rocks; i++) {
