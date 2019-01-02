@@ -239,7 +239,7 @@ class Game extends Phaser.Scene {
         var pts = [];
         var pts_max = 100;
         var rough = false;
-        for (let i=0; i<pts_max; i++) {
+        for (let i=0; i<=pts_max; i++) {
             if (Math.random() < 0.02) {rough = !rough;}
             var elevation = rough ? Phaser.Math.Between(100, 200) : Phaser.Math.Between(50, 100);
             console.log(rough.toString() + "    " + elevation);
@@ -262,7 +262,8 @@ class Game extends Phaser.Scene {
         for (let i=0; i<pts.length; i++) {
             shape_str += pts[i].x + ' ' + pts[i].y + ' ';
         }
-        var ground = this.createPolyFromVerts(0.5*game_w, game_h-50, shape_str);
+        var C = this.matter.verts.centre(pts);
+        var ground = this.createPolyFromVerts(C.x, C.y, shape_str);
         ground.setStatic(true);
 
         ground.friction = .9;
