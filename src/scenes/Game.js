@@ -136,11 +136,12 @@ class Game extends Phaser.Scene {
         return this.matter.add.gameObject(poly, { shape: { type: 'fromVerts', verts: vert_string, flagInternal: true } });
     }
 
-    createRock(rock_x, rock_y) {
-        var arrow = '40 0 40 20 100 20 100 80 40 80 40 100 0 50';
+    createRock(rock_x, rock_y, rock_size) {
         var min_r = 50;
         var max_r = 150;
-        var r = Phaser.Math.Between(min_r, max_r);
+        var size = (rock_size === undefined ? Phaser.Math.FloatBetween(0,1) : rock_size);
+        console.log(size);
+        var r = Phaser.Math.Linear(min_r, max_r, size);
 
         //generate a random enclosed shape
         var pts = [];
@@ -157,9 +158,9 @@ class Game extends Phaser.Scene {
         }
 
         //give the rock some flat sides (by making batches of vertices colinear)
-        if (r > 90) {
-            for (let s=0, s_max = Phaser.Math.Between(0,2); s<s_max; s++) {
-                var count = Phaser.Math.Between(pts_max/8, pts_max/2);
+        if (r > 100) {
+            for (let s=0, sides_max = Phaser.Math.Between(0,2); s<sides_max; s++) {
+                var count = Phaser.Math.Between(pts_max/8, pts_max/3);
                 var start = Phaser.Math.Between(0, pts.length-1);
                 var p_start = pts[start];
                 var p_end = pts[Phaser.Math.Wrap(start+count, 0, pts.length)];
@@ -176,11 +177,9 @@ class Game extends Phaser.Scene {
         for (var i=0; i<passes; i++) {this.smoothVerts(pts);}
 
         //warp shape
-        var xscale = Phaser.Math.FloatBetween(1, Math.random() < 0.8 ? Phaser.Math.FloatBetween(0.2, 0.5) : 1);
-        var yscale = Phaser.Math.FloatBetween(1, Math.random() < 0.3 ? Phaser.Math.FloatBetween(1.0, 1.6) : 1);
+        var yscale = Math.random() < 0.7 ? Phaser.Math.FloatBetween(0.2, 0.6) : 1;
+        var xscale = Math.random() < 0.3 ? Phaser.Math.FloatBetween(1.0, 1.6) : 1;
         this.matter.verts.scale(pts, xscale, yscale);
-
-        var C = this.matter.verts.centre(pts);
 
         //create rock
         var shape_str = '';
@@ -193,14 +192,15 @@ class Game extends Phaser.Scene {
         rock.setDensity(.00001);
         rock.setFriction(1, .01, 1); //(overall, air, static)
         rock.setBounce(0);
-        rock.inertia_static = rock.body.inertia*10;
+        rock.inertia_static = rock.body.inertia*12;
         rock.inertia_dynamic = rock.body.inertia;
 
         //set rock tiled image (help from https://goo.gl/VC8dK2)
         var sprite = 'stone_tex_'+Phaser.Math.Wrap(this.rocksArray.length, 1, 6).toString();//Phaser.Math.Between(1, 5).toString();
         var tex = this.add.tileSprite(0, 0, 3*max_r, 3*max_r, sprite);
-        var mask_shape = this.make.graphics();
+        var C = this.matter.verts.centre(pts);
 
+        var mask_shape = this.make.graphics();
         mask_shape.fillStyle(0xffffff);
         mask_shape.beginPath();
         var geom_pts = [];
@@ -243,10 +243,12 @@ class Game extends Phaser.Scene {
         var floor = this.matter.add.rectangle(0.5*game_w, game_h-15, game_w, 30, {isStatic: true});
         floor.friction = .9;
 
-    	for (var i = 0; i < 5; i++) {
-            var _x = Phaser.Math.Between(200, game_w-200);
-            var _y = Phaser.Math.Between(100, game_h-300);
-            this.createRock(_x, _y);
+        var rocks = 10;
+    	for (var i = 0; i < rocks; i++) {
+            var _x = Phaser.Math.Between(250, game_w-250);
+            var _y = game_h-250;
+            var _size = Math.pow(i/rocks, 3);
+            this.createRock(_x, _y, _size);
         }
 
         this.matter.add.mouseSpring({
