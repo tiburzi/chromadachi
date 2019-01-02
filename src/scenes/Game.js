@@ -260,8 +260,6 @@ class Game extends Phaser.Scene {
             }
             pts.push(v);
         }
-
-        //smooth shape
         this.smoothVerts(pts, 5, false, true);
 
         //add small noise
@@ -282,13 +280,16 @@ class Game extends Phaser.Scene {
         var y = game_h + C.y;
         var ground = this.createPolyFromVerts(x, y, shape_str);
         
+        //give ground a masked, tiled sprite
         var sprite = 'stone_tile';
         this.addMaskedSpriteTile(ground, 'stone_tile', game_w+100, 300, pts);
         ground.mask_shape.x = ground.tex.x = x;
         ground.mask_shape.y = ground.tex.y = y;
 
+        //ground physics
         ground.setStatic(true);
         ground.friction = .9;
+
         return ground;
     }
 
@@ -333,11 +334,13 @@ class Game extends Phaser.Scene {
         let allDoneReversing = true;
 
         for (let i=0; i<this.rocksArray.length; i++) {
+            //update all rock masks
             var r = this.rocksArray[i];
             r.mask_shape.x = r.tex.x = r.x;
             r.mask_shape.y = r.tex.y = r.y;
             r.mask_shape.angle = r.tex.angle = r.angle;
 
+            //set rock inertia (hack)
             var speed_threshold = 0.5;
             if (r.body.speed < speed_threshold && r.stableFrames > 4) {
                 r.body.inertia = r.inertia_static;
@@ -346,6 +349,7 @@ class Game extends Phaser.Scene {
             }
             r.body.inverseInertia = 1/r.body.inertia;
 
+            //check if reversing time
             if (this.isReversing) {
                 // Rewind back as long as there is something to rewind 
                 if (r.positions.length != 0) {
