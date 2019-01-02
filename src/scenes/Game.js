@@ -244,12 +244,15 @@ class Game extends Phaser.Scene {
         var pts = [];
         var pts_max = 100;
         var rough = false;
+        var stepped = false;
         var prev = 100;
         var left_side = -0.5*game_w-50;
         var right_side = 0.5*game_w+50;
         for (let i=0; i<=pts_max; i++) {
-            if (Math.random() < 0.04) {rough = !rough;}
-            var elevation = (rough && Math.random() < .9) ? prev : Phaser.Math.Between(50, 100);
+            if (Math.random() < 0.06 && stepped) {stepped = false;}
+            if (Math.random() < 0.01 && !stepped) {stepped = true;}
+            if (Math.random() < 0.05) {rough = !rough;}
+            var elevation = (rough && Math.random() < .9) ? prev : (Phaser.Math.Between(50, 100) + stepped*50);
             var prev = elevation;
             var v = {
                 x: Phaser.Math.Linear(left_side, right_side, i/pts_max),
