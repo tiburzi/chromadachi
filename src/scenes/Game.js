@@ -120,7 +120,7 @@ class Game extends Phaser.Scene {
     }
 
     smoothVerts(pts) {
-        var relax = 0.5;
+        var relax = 0.6;
         for (let i=0; i<pts.length; i++) {
             var prev = pts[Phaser.Math.Wrap(i-1, 0, pts.length)];
             var next = pts[Phaser.Math.Wrap(i+1, 0, pts.length)];
@@ -156,21 +156,23 @@ class Game extends Phaser.Scene {
             pts.push(v);
         }
 
-        //flatten a side of the shape (make vertices colinear)
-        if (r > 80) {
-            var count = Phaser.Math.Between(pts_max/8, pts_max/2);
-            var start = Phaser.Math.Between(0, pts.length-1);
-            var p_start = pts[start];
-            var p_end = pts[Phaser.Math.Wrap(start+count, 0, pts.length)];
-            for (let i=0; i<count; i++) {
-                let j = Phaser.Math.Wrap(start+i, 0, pts.length);
-                pts[j].x = Phaser.Math.Linear(p_start.x, p_end.x, i/count) + Phaser.Math.FloatBetween(-5.0, 5.0);
-                pts[j].y = Phaser.Math.Linear(p_start.y, p_end.y, i/count) + Phaser.Math.FloatBetween(-5.0, 5.0);;
+        //give the rock some flat sides (by making batches of vertices colinear)
+        if (r > 90) {
+            for (let s=0, s_max = Phaser.Math.Between(0,2); s<s_max; s++) {
+                var count = Phaser.Math.Between(pts_max/8, pts_max/2);
+                var start = Phaser.Math.Between(0, pts.length-1);
+                var p_start = pts[start];
+                var p_end = pts[Phaser.Math.Wrap(start+count, 0, pts.length)];
+                for (let i=0; i<count; i++) {
+                    let j = Phaser.Math.Wrap(start+i, 0, pts.length);
+                    pts[j].x = Phaser.Math.Linear(p_start.x, p_end.x, i/count) + Phaser.Math.FloatBetween(-5.0, 5.0);
+                    pts[j].y = Phaser.Math.Linear(p_start.y, p_end.y, i/count) + Phaser.Math.FloatBetween(-5.0, 5.0);;
+                }
             }
         }
 
         //smooth shape
-        var passes = Phaser.Math.Between(2, 6);
+        var passes = Phaser.Math.Between(3, 6);
         for (var i=0; i<passes; i++) {this.smoothVerts(pts);}
 
         //warp shape
