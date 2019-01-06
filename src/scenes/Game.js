@@ -216,7 +216,7 @@ class Game extends Phaser.Scene {
         rock.setFriction(1, .01, 1); //(overall, air, static)
         rock.setBounce(0);
         rock.setSleepEvents(true, true);
-        rock.setSleepThreshold(20);
+        rock.setSleepThreshold(40);
         rock.inertia_static = rock.body.inertia*1000;
         rock.inertia_dynamic = rock.body.inertia;
 
@@ -325,16 +325,18 @@ class Game extends Phaser.Scene {
         /*var ball = this.matter.add.image(100, 100, 'stone_tile');
         ball.setCircle();
         ball.setFriction(0.005).setBounce(1);
-        ball.setSleepEvents(true, true);*/
+        ball.setSleepEvents(true, true);
+        ball.setSleepThreshold(20);*/
+
+        Phaser.Physics.Matter.Matter.Sleeping._motionSleepThreshold = 0.5;//0.08; //default
+        Phaser.Physics.Matter.Matter.Sleeping._motionWakeThreshold = 0.5;//0.18; //default
 
         this.matter.world.on('sleepstart', function (event, body) {
-            event.source.gameObject.setTint(0xff0000);
-            console.log('sleep on');
+            event.source.gameObject.tex.setTint(0xff0000);
         });
 
         this.matter.world.on('sleepend', function (event) {
-            event.source.gameObject.setTint(0xffffff);
-            console.log('sleep off');
+            event.source.gameObject.tex.clearTint();
         });
     }
 
@@ -416,6 +418,7 @@ class Game extends Phaser.Scene {
 /*
     create ()
 {
+    Phaser.Physics.Matter.Matter.Sleeping._motionSleepThreshold = 0.5;
     this.matter.world.setBounds(0, 0, 800, 300, 32, true, true, false, true);
 
     this.time.addEvent({
@@ -426,7 +429,7 @@ class Game extends Phaser.Scene {
             ball.setCircle();
             ball.setFriction(0.005).setBounce(1);
             ball.setSleepEvents(true, true);
-            ball.setSleepThreshold(20);
+            ball.setSleepThreshold(20); //this is how many steps the body must be still before falling asleep
         },
         callbackScope: this,
         repeat: 2
