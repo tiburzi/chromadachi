@@ -310,7 +310,7 @@ class Game extends Phaser.Scene {
         this.matter.world.setBounds();
         this.createGround();
 
-        var rocks = 2;
+        var rocks = 8;
     	for (var i = 0; i < rocks; i++) {
             var _x = Phaser.Math.Between(250, game_w-250);
             var _y = game_h-Phaser.Math.Between(200, 350);
@@ -322,10 +322,10 @@ class Game extends Phaser.Scene {
             angularStiffness: 0.7
         });
 
-        var ball = this.matter.add.image(100, 100, 'stone_tile');
+        /*var ball = this.matter.add.image(100, 100, 'stone_tile');
         ball.setCircle();
         ball.setFriction(0.005).setBounce(1);
-        ball.setSleepEvents(true, true);
+        ball.setSleepEvents(true, true);*/
 
         this.matter.world.on('sleepstart', function (event, body) {
             event.source.gameObject.setTint(0xff0000);
