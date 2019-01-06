@@ -16,7 +16,8 @@ var game = new Phaser.Game({
                 x: 0,
                 y: 2
             },
-            debug: true
+            debug: true,
+            enableSleeping: true
         }
     }
 });

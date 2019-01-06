@@ -14,7 +14,7 @@ class Game extends Phaser.Scene {
         this.isReversing = false;
     }
 
-    debugUpdate() {
+    /*debugUpdate() {
     	// For toggling the debug physics view and anything else 
     	if (Phaser.Input.Keyboard.JustDown(this.keys.spacebar)) {
     		this.matter.world.drawDebug = !this.matter.world.drawDebug;
@@ -117,7 +117,7 @@ class Game extends Phaser.Scene {
 
             this.matter.add.rectangle(x, y, width, height, { restitution: 0.5 });
         }*/
-    }
+    /*}
 
     smoothVerts(pts, passes, smooth_xdir, smooth_ydir) {
         var relax = 0.6;
@@ -215,6 +215,8 @@ class Game extends Phaser.Scene {
         rock.setDensity(.00001);
         rock.setFriction(1, .01, 1); //(overall, air, static)
         rock.setBounce(0);
+        rock.setSleepEvents(true, true);
+        rock.setSleepThreshold(20);
         rock.inertia_static = rock.body.inertia*1000;
         rock.inertia_dynamic = rock.body.inertia;
 
@@ -308,7 +310,7 @@ class Game extends Phaser.Scene {
         this.matter.world.setBounds();
         this.createGround();
 
-        var rocks = 10;
+        var rocks = 2;
     	for (var i = 0; i < rocks; i++) {
             var _x = Phaser.Math.Between(250, game_w-250);
             var _y = game_h-Phaser.Math.Between(200, 350);
@@ -318,6 +320,21 @@ class Game extends Phaser.Scene {
 
         this.matter.add.mouseSpring({
             angularStiffness: 0.7
+        });
+
+        var ball = this.matter.add.image(100, 100, 'stone_tile');
+        ball.setCircle();
+        ball.setFriction(0.005).setBounce(1);
+        ball.setSleepEvents(true, true);
+
+        this.matter.world.on('sleepstart', function (event, body) {
+            event.source.gameObject.setTint(0xff0000);
+            console.log('sleep on');
+        });
+
+        this.matter.world.on('sleepend', function (event) {
+            event.source.gameObject.setTint(0xffffff);
+            console.log('sleep off');
         });
     }
 
@@ -395,6 +412,36 @@ class Game extends Phaser.Scene {
             this.isReversing = false;
         }
     }
+    */
+
+    create ()
+{
+    this.matter.world.setBounds(0, 0, 800, 300, 32, true, true, false, true);
+
+    this.time.addEvent({
+        delay: 500,
+        callback: function ()
+        {
+            var ball = this.matter.add.image(100, 100, 'stone_tile');
+            ball.setCircle();
+            ball.setFriction(0.005).setBounce(1);
+            ball.setSleepEvents(true, true);
+            ball.setSleepThreshold(20);
+        },
+        callbackScope: this,
+        repeat: 2
+    });
+
+    this.matter.world.on('sleepstart', function (event, body) {
+        event.source.gameObject.setTint(0xff0000);
+        console.log('sleep on');
+    });
+
+    this.matter.world.on('sleepend', function (event) {
+        event.source.gameObject.setTint(0xffffff);
+        console.log('sleep off');
+    });
+}
 }
 
 // Make it so we can use it from a different file. 
