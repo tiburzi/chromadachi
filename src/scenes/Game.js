@@ -135,7 +135,9 @@ class Game extends Phaser.Scene {
 
     createPolyFromVerts(_x, _y, vert_string) {
         var poly = this.add.polygon(_x, _y, vert_string, 0x0000ff, 0.2);
-        return this.matter.add.gameObject(poly, { shape: { type: 'fromVerts', verts: vert_string, flagInternal: true } });
+        var obj = this.matter.add.gameObject(poly, { shape: { type: 'fromVerts', verts: vert_string, flagInternal: true } });
+        obj.setPosition(_x, _y);
+        return obj;
     }
 
     addMaskedSpriteTile(obj, sprite, w, h, pts) {
