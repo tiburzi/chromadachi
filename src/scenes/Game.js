@@ -318,14 +318,37 @@ class Game extends Phaser.Scene {
             this.createRock(_x, _y, _size);
         }
 
-        this.matter.add.mouseSpring({
-            angularStiffness: 0.7
+        let constraint = this.matter.add.mouseSpring({
+            angularStiffness: 0.7,
+            stiffness: 0.9
         });
 
         /*var ball = this.matter.add.image(100, 100, 'stone_tile');
         ball.setCircle();
         ball.setFriction(0.005).setBounce(1);
         ball.setSleepEvents(true, true);*/
+
+        let Query = Phaser.Physics.Matter.Matter.Query;
+        let Composite = Phaser.Physics.Matter.Matter.Composite;
+        let Body = Phaser.Physics.Matter.Matter.Body;
+        let lastBodyTouched = undefined;
+
+        this.input.on('pointerdown', function (pointer) {
+            let bodies = Query.point(Composite.allBodies(this.matter.world.localWorld), pointer);
+            if (bodies.length != 0) {
+                let body = bodies[0];
+                body.isTouched = true;
+                body.releaseCounter = -1;
+                body.ignoreGravity = true;
+                lastBodyTouched = body;
+            }
+        }, this);
+
+        this.input.on('pointerup', function (pointer) { 
+            if (lastBodyTouched) {
+                lastBodyTouched.releaseCounter = 0;
+            }
+        }, this);
 
         this.matter.world.on('sleepstart', function (event, body) {
             event.source.gameObject.setTint(0xff0000);
@@ -340,7 +363,8 @@ class Game extends Phaser.Scene {
 
     update() {
     	this.debugUpdate();
-        
+        let Body = Phaser.Physics.Matter.Matter.Body;
+ 
         if (Phaser.Input.Keyboard.JustDown(this.keys.R) && !this.isReversing) { 
             this.isReversing = true;
             // Disable collision (set sensor) and set all rocks to static 
@@ -355,6 +379,18 @@ class Game extends Phaser.Scene {
         for (let i=0; i<this.rocksArray.length; i++) {
             //update all rock masks
             var r = this.rocksArray[i];
+            let body = r.body;
+            if (body.isTouched) {
+                Body.setAngularVelocity(body, 0);
+                Body.setVelocity(body, {x:0, y:0});
+                if (body.releaseCounter >= 0) {
+                    body.releaseCounter ++;
+                    if (body.releaseCounter > 60 * 0.5) {
+                        body.isTouched = false;
+                        body.ignoreGravity = false;
+                    }
+                }
+            }
             r.mask_shape.x = r.tex.x = r.x;
             r.mask_shape.y = r.tex.y = r.y;
             r.mask_shape.angle = r.tex.angle = r.angle;
