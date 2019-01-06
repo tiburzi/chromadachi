@@ -14,7 +14,7 @@ class Game extends Phaser.Scene {
         this.isReversing = false;
     }
 
-    /*debugUpdate() {
+    debugUpdate() {
     	// For toggling the debug physics view and anything else 
     	if (Phaser.Input.Keyboard.JustDown(this.keys.spacebar)) {
     		this.matter.world.drawDebug = !this.matter.world.drawDebug;
@@ -117,7 +117,7 @@ class Game extends Phaser.Scene {
 
             this.matter.add.rectangle(x, y, width, height, { restitution: 0.5 });
         }*/
-    /*}
+    }
 
     smoothVerts(pts, passes, smooth_xdir, smooth_ydir) {
         var relax = 0.6;
@@ -412,8 +412,8 @@ class Game extends Phaser.Scene {
             this.isReversing = false;
         }
     }
-    */
-
+    
+/*
     create ()
 {
     this.matter.world.setBounds(0, 0, 800, 300, 32, true, true, false, true);
@@ -441,7 +441,7 @@ class Game extends Phaser.Scene {
         event.source.gameObject.setTint(0xffffff);
         console.log('sleep off');
     });
-}
+}*/
 }
 
 // Make it so we can use it from a different file. 
