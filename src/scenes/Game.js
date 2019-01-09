@@ -329,8 +329,9 @@ class Game extends Phaser.Scene {
         ball.setSleepEvents(true, true);
         ball.setSleepThreshold(20);*/
 
-        Phaser.Physics.Matter.Matter.Sleeping._motionSleepThreshold = 0.5;//0.08; //default
-        Phaser.Physics.Matter.Matter.Sleeping._motionWakeThreshold = 0.5;//0.18; //default
+        let Sleeping = Phaser.Physics.Matter.Matter.Sleeping;
+        Sleeping._motionSleepThreshold = 0.4;//0.08; //default
+        Sleeping._motionWakeThreshold = 0.5;//0.18; //default
 
         let Query = Phaser.Physics.Matter.Matter.Query;
         let Composite = Phaser.Physics.Matter.Matter.Composite;
@@ -345,6 +346,15 @@ class Game extends Phaser.Scene {
                 body.releaseCounter = -1;
                 body.ignoreGravity = true;
                 lastBodyTouched = body;
+
+                //awaken all rocks when one is grabbed
+                for(let rock of this.rocksArray) {
+                    /*Sleeping.set(rock, true); //in order to correctly set 'rock.isSleeping'
+                    rock.isSleeping = true;
+                    Sleeping.set(rock, false);
+                    console.log("isSleeping = "+rock.isSleeping);*/
+                    rock.thrust(0.00000001); //wake the rock up this way because setting sleep=false didn't work
+                }
             }
         }, this);
 
