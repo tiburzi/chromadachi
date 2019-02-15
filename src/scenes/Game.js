@@ -13,6 +13,10 @@ class Game extends Phaser.Scene {
     addCell(_x, _y) {
         //let c = this.add.sprite(_x, _y, 'cell');
         let c = this.physics.add.image(_x, _y, 'cell');
+        c.setRandomPosition();
+        c.setVelocity(Util.irandomRange(-100,100), Util.irandomRange(-100,100));
+        c.setCollideWorldBounds(true);
+        c.setBounce(1);
         c.setData('emotion', 'happy');
 
         c.uniqueID = this.objCounter++;
@@ -34,17 +38,11 @@ class Game extends Phaser.Scene {
 
         for(let i=0; i<5; i++) {
             let c = this.addCell(0, 0);
-            c.setRandomPosition();
-            c.setVelocity(Util.irandomRange(-100,100), Util.irandomRange(-100,100));
-            c.setCollideWorldBounds(true);
-            c.setBounce(1);
         }
 
-        var group = this.physics.add.group(this.cells, {
-        });
-
+        var group = this.physics.add.group(this.cells);
         this.physics.add.collider(group, group);
-        }
+    }
 
     updateCells() {
         this.cells.forEach(function(c) {
@@ -65,6 +63,7 @@ class Game extends Phaser.Scene {
         this.bg.setSize(w, h);
 
         //smoosh cells together!
+        this.physics.world.setBounds(0, 0, w, h);
         this.cells.forEach(function(c) {
             c.setPosition(Math.min(c.x, w), Math.min(c.y, h));
         });
