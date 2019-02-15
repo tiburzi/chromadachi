@@ -42,6 +42,16 @@ class Game extends Phaser.Scene {
 
         var group = this.physics.add.group(this.cells);
         this.physics.add.collider(group, group);
+
+        //create emotion field
+        this.emof = Grid.create(100, 100);
+        for (let i=0, w=this.emof.width; i<w; i++) {
+            for (let j=0, h=this.emof.height; j<h; j++) {
+                this.emof.set(i, j, "hello");
+            }
+        }
+        console.log(this.emof.get(50,50));
+
     }
 
     updateCells() {
