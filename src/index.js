@@ -8,6 +8,9 @@ var game = new Phaser.Game({
     parent: 'game', // The ID of the div in index.html
     scene: [Loading, MainMenu, Game],
     backgroundColor: '#051020',
+    physics: {
+        default: 'arcade'
+    },
     scale: {
         mode: Phaser.Scale.RESIZE,
         width: '100%',

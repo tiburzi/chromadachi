@@ -36,7 +36,8 @@ class Loading extends Phaser.Scene {
     }
 
     create() {
-    	/*var that = this;
+    	//use this code for 'click to start!'
+        /*var that = this;
     	this.input.once('pointerdown', function () {
             that.scene.start("Game");
         });*/

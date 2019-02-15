@@ -6,28 +6,68 @@ import 'phaser';
 class Game extends Phaser.Scene {
     constructor(config) {
     	super('Game');
+
+        this.objCounter = 0;
+    }
+
+    addCell(_x, _y) {
+        //let c = this.add.sprite(_x, _y, 'cell');
+        let c = this.physics.add.image(_x, _y, 'cell');
+        c.setData('emotion', 'happy');
+
+        c.uniqueID = this.objCounter++;
+        this.cells.push(c);
+        this.cellsKeys[c.uniqueID] = c;
+        return c;
     }
 
     create() {    	
-    	this.bg = this.add.tileSprite(0, 0, this.scale.width, this.scale.height, 'grid').setOrigin(0);
-        this.logo = this.add.sprite(this.scale.width / 2, this.scale.height / 2, 'cell');
-
+    	//make game resize with window
         this.scale.on('resize', this.resize, this);
+
+        this.physics.world.setBoundsCollision(true);
+        this.bg = this.add.tileSprite(0, 0, this.scale.width, this.scale.height, 'grid').setOrigin(0);
+
+        //populate shtuff
+        this.cells = [];
+        this.cellsKeys = [];
+
+        for(let i=0; i<5; i++) {
+            let c = this.addCell(0, 0);
+            c.setRandomPosition();
+            c.setVelocity(Util.irandomRange(-100,100), Util.irandomRange(-100,100));
+            c.setCollideWorldBounds(true);
+            c.setBounce(1);
+        }
+
+        var group = this.physics.add.group(this.cells, {
+        });
+
+        this.physics.add.collider(group, group);
+        }
+
+    updateCells() {
+        this.cells.forEach(function(c) {
+
+        });
     }
 
     update() {
-    	
+    	//updateCells();
     }
 
     resize (gameSize, baseSize, displaySize, resolution)
     {
-        var width = gameSize.width;
-        var height = gameSize.height;
+        let w = gameSize.width;
+        let h = gameSize.height;
 
-        this.cameras.resize(width, height);
+        this.cameras.resize(w, h);
+        this.bg.setSize(w, h);
 
-        this.bg.setSize(width, height);
-        this.logo.setPosition(width / 2, height / 2);
+        //smoosh cells together!
+        this.cells.forEach(function(c) {
+            c.setPosition(Math.min(c.x, w), Math.min(c.y, h));
+        });
     }
 }
 
