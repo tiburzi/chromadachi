@@ -9,8 +9,8 @@ class Game extends Phaser.Scene {
     }
 
     create() {    	
-    	this.bg = this.add.tileSprite(0, 0, this.scale.width, this.scale.height, 'rain').setOrigin(0);
-        this.logo = this.add.sprite(this.scale.width / 2, this.scale.height / 2, 'logo');
+    	this.bg = this.add.tileSprite(0, 0, this.scale.width, this.scale.height, 'grid').setOrigin(0);
+        this.logo = this.add.sprite(this.scale.width / 2, this.scale.height / 2, 'cell');
 
         this.scale.on('resize', this.resize, this);
     }
