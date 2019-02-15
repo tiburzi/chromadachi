@@ -6,19 +6,12 @@ import Game from './scenes/Game';
 var game = new Phaser.Game({
     type: Phaser.AUTO, // Choose WebGL or Canvas automatically
     parent: 'game', // The ID of the div in index.html
-    width: 1280,
-    height: 720,
     scene: [Loading, MainMenu, Game],
-    physics: {
-        default: 'matter',
-        matter: {
-            gravity: {
-                x: 0,
-                y: 2
-            },
-            debug: true,
-            enableSleeping: true
-        }
+    backgroundColor: '#051020',
+    scale: {
+        mode: Phaser.Scale.RESIZE,
+        width: '100%',
+        height: '100%'
     }
 });
 
